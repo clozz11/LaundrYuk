@@ -1,93 +1,98 @@
 # LaundryYuk
 
-Aplikasi web untuk layanan laundry. Proyek ini terdiri dari frontend React dan
-backend Node.js/Express yang terhubung ke database MySQL.
+LaundryYuk is a laundry-service web application with a React frontend and an
+Express API backed by MySQL. Customers can register, book laundry services,
+track orders, and leave feedback. Admins can review orders and update their
+status.
 
-## Fitur
-
-- Registrasi dan login pelanggan.
-- Pembuatan pesanan laundry.
-- Melihat pesanan yang sedang diproses dan riwayat pesanan.
-- Pengelolaan pesanan dan status oleh admin.
-- Pemberian rating dan ulasan untuk pesanan.
-
-## Teknologi
+## Tech stack
 
 - **Frontend:** React, Vite, React Router
-- **Backend:** Node.js, Express
+- **Backend:** Node.js, Express, JSON Web Tokens (JWT)
 - **Database:** MySQL
 
-## Persiapan
+## Requirements
 
-Pastikan sudah memasang:
+- Node.js 20.19+ or 22.12+ and npm.
+- MySQL 8+ (XAMPP is suitable for local development).
 
-- Node.js 20.19+ atau 22.12+, beserta npm.
-- MySQL, misalnya melalui XAMPP.
+## Local setup
 
-Backend mengharapkan database MySQL yang sudah berisi tabel `users`, `laundry`,
-`detail_laundry`, `harga`, dan `feedback`, serta stored procedure
-`sp_update_status`. File skema SQL belum disertakan dalam repository ini.
+### 1. Create the database
 
-## Menjalankan aplikasi
+Import [`laundryyuk-backend/database/schema.sql`](laundryyuk-backend/database/schema.sql)
+into MySQL using phpMyAdmin or the MySQL command-line client. The script creates
+the `laundryyuk` database, required tables, service-price records, and the
+`sp_update_status` stored procedure used by the API.
 
-### 1. Siapkan backend
+### 2. Configure and start the backend
 
-```bash
+```powershell
 cd laundryyuk-backend
+Copy-Item .env.example .env
 npm install
 ```
 
-Buat file `.env` di folder `laundryyuk-backend` dengan konfigurasi database
-Anda:
+Update `.env` with your local MySQL settings. Set `JWT_SECRET` to a private,
+random value; generate one with:
 
-```env
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=
-DB_NAME=laundryyuk
-PORT=5000
+```powershell
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ```
 
-Sesuaikan nilainya dengan pengaturan MySQL lokal. File `.env` berisi informasi
-rahasia dan tidak boleh di-commit.
+Copy the generated value into `.env`. Never commit `.env` or share its values.
+Start the API:
 
-Jalankan server:
-
-```bash
-node server.js
+```powershell
+npm start
 ```
 
-Secara default, backend berjalan di `http://localhost:5000`.
+The API listens on `http://localhost:5000` by default.
 
-### 2. Jalankan frontend
+### 3. Configure and start the frontend
 
-Buka terminal lain dari folder proyek:
+Open another terminal from the project root:
 
-```bash
+```powershell
 cd laundryyuk-frontend
 npm install
 npm run dev
 ```
 
-Buka alamat lokal yang ditampilkan Vite di terminal.
+Open the local URL printed by Vite, usually `http://localhost:5173`.
+The frontend defaults to the local API. For another API host, create
+`laundryyuk-frontend/.env` and set `VITE_API_URL` to the backend base URL,
+without a trailing slash (for example, `https://api.example.com`).
 
-## Endpoint API
+## Admin account
 
-Backend menyediakan endpoint berikut:
+There is no built-in admin password. Register an account through the app first,
+then promote that account to admin in your local MySQL database:
 
-| Method | Endpoint | Kegunaan |
-| --- | --- | --- |
-| `POST` | `/api/register` | Mendaftarkan pelanggan |
-| `POST` | `/api/login` | Login pelanggan atau admin |
-| `POST` | `/api/laundry` | Membuat pesanan laundry |
-| `GET` | `/api/laundry/proses/:user_id` | Melihat pesanan pelanggan yang belum selesai |
-| `GET` | `/api/admin/orders` | Melihat seluruh pesanan |
-| `PUT` | `/api/admin/orders/:id` | Memperbarui status pesanan |
-| `POST` | `/api/laundry/feedback` | Mengirim rating dan ulasan |
+```sql
+USE laundryyuk;
+UPDATE users SET role = 'admin' WHERE email = 'your-admin-email@example.com';
+```
 
-## Catatan konfigurasi
+Log in again after changing the role so the API issues a token with the updated
+role. Admin order endpoints require a valid admin token; customer order and
+feedback endpoints require a valid customer token.
 
-Frontend saat ini memanggil backend pada `http://localhost:5000`. Jika alamat
-atau port backend diubah, sesuaikan URL API di frontend. Kredensial admin
-contoh masih ditentukan langsung di kode backend; ubah mekanisme tersebut
-sebelum aplikasi digunakan di lingkungan publik.
+## API routes
+
+| Method | Endpoint | Access | Purpose |
+| --- | --- | --- | --- |
+| `POST` | `/api/register` | Public | Register a customer |
+| `POST` | `/api/login` | Public | Sign in and receive an 8-hour JWT |
+| `POST` | `/api/laundry` | Customer | Create an order |
+| `GET` | `/api/laundry/proses` | Customer | List the signed-in customer's orders |
+| `GET` | `/api/admin/orders` | Admin | List all orders |
+| `PUT` | `/api/admin/orders/:id` | Admin | Update an order status |
+| `POST` | `/api/laundry/feedback` | Customer | Review one of their completed orders |
+
+## Security notes
+
+Passwords are stored as bcrypt hashes. Protected API requests use the JWT
+returned by `/api/login`; the frontend keeps it in browser local storage for
+this development project. Use HTTPS in deployments, keep `JWT_SECRET` private,
+and do not reuse the local `.env` or sample database with real customer data.

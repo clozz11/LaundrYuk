@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import { apiFetch } from './api';
 
 const Pemesanan = () => {
     const navigate = useNavigate();
@@ -11,7 +12,6 @@ const Pemesanan = () => {
     const [tanggal, setTanggal] = useState(new Date());
     const [selectedLayanan, setSelectedLayanan] = useState("");
     const [jumlah, setJumlah] = useState(0);
-    const [totalHarga, setTotalHarga] = useState(0);
     const [alamat, setAlamat] = useState("");
     const [telepon, setTelepon] = useState("");
     
@@ -31,15 +31,8 @@ const Pemesanan = () => {
     const loggedInUser = JSON.parse(localStorage.getItem('user'));
     const defaultName = loggedInUser && loggedInUser.username ? loggedInUser.username : "";
 
-    // Efek untuk generate harga otomatis
-    useEffect(() => {
-        const layanan = layananList.find(item => item.id === parseInt(selectedLayanan));
-        if (layanan && jumlah > 0) {
-            setTotalHarga(layanan.harga * jumlah);
-        } else {
-            setTotalHarga(0);
-        }
-    }, [selectedLayanan, jumlah]);
+    const layananDipilih = layananList.find(item => item.id === Number(selectedLayanan));
+    const totalHarga = layananDipilih ? layananDipilih.harga * jumlah : 0;
 
     // --- STYLES ---
     const containerStyle = {
@@ -105,7 +98,7 @@ const Pemesanan = () => {
 
         try {
             // PENGIRIMAN KE DATABASE
-            const response = await fetch('http://localhost:5000/api/laundry', {
+            const response = await apiFetch('/api/laundry', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

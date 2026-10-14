@@ -1,8 +1,9 @@
 // src/Home.jsx
 
 import React, { useState } from 'react';
+import { apiFetch } from './api';
 import { Link } from 'react-router-dom';
-import Header from './components/header.jsx'; 
+import Header from './components/Header.jsx';
 import illustrationImage from './assets/ChatGPT Image Jan 1, 2026, 07_07_20 AM 1.png';
 import basketIcon from './assets/majesticons_basket-2.png';
 import { useNavigate } from 'react-router-dom';
@@ -246,7 +247,7 @@ function Home() {
         e.preventDefault(); 
         
         try {
-            const response = await fetch('http://localhost:5000/api/register', {
+            const response = await apiFetch('/api/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -272,7 +273,7 @@ function Home() {
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://localhost:5000/api/login', {
+            const response = await apiFetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -286,6 +287,7 @@ function Home() {
             if (response.ok) {
                 alert(data.message);
                 localStorage.setItem('user', JSON.stringify(data.user));
+                localStorage.setItem('token', data.token);
 
                 if (data.user.role === 'admin') {
                     navigate('/admin-dashboard'); 

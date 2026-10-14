@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiFetch } from './api';
 
 const DalamProses = () => {
     const [pesananProses, setPesananProses] = useState([]);
@@ -20,7 +21,7 @@ const DalamProses = () => {
 
         const fetchProses = async () => {
             try {
-                const response = await fetch(`http://localhost:5000/api/laundry/proses/${userId}`);
+                const response = await apiFetch('/api/laundry/proses');
                 const data = await response.json();
                 
                 console.log("Data dari server:", data);

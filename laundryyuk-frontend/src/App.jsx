@@ -3,7 +3,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './Home';   
-import Login from './login'; 
+import Login from './Login.jsx';
 import CustomerDashboard from './CustomerDashboard';
 import Pemesanan from './Pemesanan';
 import DalamProses from './DalamProses';

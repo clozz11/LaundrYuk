@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { apiFetch } from './api';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -12,7 +12,7 @@ const AdminDashboard = () => {
         try {
             const user = localStorage.getItem('user');
             return user ? JSON.parse(user) : null;
-        } catch (error) {
+        } catch {
             return null;
         }
     };
@@ -24,8 +24,12 @@ const AdminDashboard = () => {
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/admin/orders');
-                const data = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+                const response = await apiFetch('/api/admin/orders');
+                const responseData = await response.json();
+                if (!response.ok) {
+                    throw new Error(responseData.message || 'Gagal mengambil daftar pesanan.');
+                }
+                const data = Array.isArray(responseData) ? responseData : (responseData?.data || []);
                 setOrders(data);
             } catch (error) {
                 console.error("Gagal mengambil data:", error);
@@ -41,27 +45,32 @@ const AdminDashboard = () => {
         try {
             // 1. Kirim request ke backend
             // Pastikan URL ini sesuai dengan route PUT di backend Anda
-            const response = await axios.put(`http://localhost:5000/api/admin/orders/${id}`, { 
-                status: newStatus 
+            const response = await apiFetch(`/api/admin/orders/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
             });
+            const responseData = await response.json();
 
-            if (response.status === 200) {
-                // 2. Update state di frontend agar langsung berubah tanpa refresh
-                setOrders(prev => prev.map(order => {
-                    const orderId = order.order_id || order.id_laundry;
-                    return orderId === id ? { ...order, status: newStatus } : order;
-                }));
-                
-                alert(`Status Order #${id} berhasil diperbarui menjadi ${newStatus.replace('_', ' ')}!`);
+            if (!response.ok) {
+                throw new Error(responseData.message || 'Gagal memperbarui status pesanan.');
             }
+
+            setOrders(prev => prev.map(order => {
+                const orderId = order.order_id || order.id_laundry;
+                return orderId === id ? { ...order, status: newStatus } : order;
+            }));
+
+            alert(`Status Order #${id} berhasil diperbarui menjadi ${newStatus.replace('_', ' ')}!`);
         } catch (err) {
-            console.error("Error detail:", err.response?.data || err.message);
+            console.error("Error detail:", err.message);
             alert("Gagal merubah status. Pastikan server backend berjalan dan ID order benar.");
         }
     };
 
     const handleLogout = () => {
         localStorage.removeItem('user'); 
+        localStorage.removeItem('token');
         navigate('/'); 
     };
 

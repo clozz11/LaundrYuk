@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiFetch } from './api';
 import bellIcon from './assets/carbon_notification.png';
 import basketIcon from './assets/majesticons_basket-2.png';
 
@@ -27,7 +28,7 @@ const CustomerDashboard = () => {
     const handleRegisterSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://localhost:5000/api/register', {
+            const response = await apiFetch('/api/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
@@ -40,7 +41,7 @@ const CustomerDashboard = () => {
             } else {
                 alert("Gagal: " + data.message);
             }
-        } catch (error) {
+        } catch {
             alert("Terjadi kesalahan pada server.");
         }
     };
@@ -48,7 +49,7 @@ const CustomerDashboard = () => {
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://localhost:5000/api/login', {
+            const response = await apiFetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(loginData),
@@ -59,6 +60,7 @@ const CustomerDashboard = () => {
                 alert("Login Berhasil!");
                 // Simpan data user (termasuk role) ke localStorage
                 localStorage.setItem('user', JSON.stringify(data.user));
+                localStorage.setItem('token', data.token);
                 setAuthMode(null);
 
                 // LOGIKA NAVIGASI BERDASARKAN ROLE
@@ -70,7 +72,7 @@ const CustomerDashboard = () => {
             } else {
                 alert(data.message);
             }
-        } catch (error) {
+        } catch {
             alert("Gagal terhubung ke server");
         }
     };
@@ -78,6 +80,7 @@ const CustomerDashboard = () => {
     const handleLogout = (e) => {
         e.stopPropagation(); 
         localStorage.removeItem('user'); 
+        localStorage.removeItem('token');
         setShowDropdown(false);
         setAuthMode('login'); 
     };

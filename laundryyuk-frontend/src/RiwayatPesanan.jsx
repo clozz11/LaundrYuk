@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiFetch } from './api';
 
 const RiwayatPesanan = () => {
     const [riwayat, setRiwayat] = useState([]);
@@ -17,7 +18,7 @@ const RiwayatPesanan = () => {
 
         const fetchRiwayat = async () => {
             try {
-                const response = await fetch(`http://localhost:5000/api/laundry/proses/${userId}`);
+                const response = await apiFetch('/api/laundry/proses');
                 const data = await response.json();
                 
                 if (response.ok) {
@@ -51,7 +52,7 @@ const RiwayatPesanan = () => {
         }
 
         try {
-            const response = await fetch(`http://localhost:5000/api/laundry/feedback`, {
+            const response = await apiFetch('/api/laundry/feedback', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

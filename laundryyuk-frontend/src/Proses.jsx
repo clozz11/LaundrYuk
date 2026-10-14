@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiFetch } from './api';
 
 const Proses = () => {
     const [pesananProses, setPesananProses] = useState([]);
@@ -18,7 +19,7 @@ const Proses = () => {
 
         const fetchProses = async () => {
             try {
-                const response = await fetch(`http://localhost:5000/api/laundry/proses/${userId}`);
+                const response = await apiFetch('/api/laundry/proses');
                 const data = await response.json();
                 if (response.ok) {
                     setPesananProses(data);
